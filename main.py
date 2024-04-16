@@ -19,6 +19,18 @@ class PostBase(BaseModel):
 class UserBase(BaseModel):
     username: str
 
+
+
+# Classes para update
+class UpdatePost(BaseModel):
+    title: str
+    content: str
+
+
+class UpdateUser(BaseModel):
+    username: str
+
+
 # Para pegar nosso banco de dados
 def get_db():
     db = SessionLocal()
@@ -62,6 +74,18 @@ async def delete_post(post_id:int, db:db_dependency):
     db.delete(db_post) 
     db.commit()
 
+
+# Endpoint para atualizar post
+@app.put("/posts/{post_id}", tags = ["post"], status_code=status.HTTP_200_OK)
+async def update_post(post_id:int, post_update: UpdatePost, db:db_dependency):
+    db_post = db.query(models.Post).filter(models.Post.id == post_id).first()
+    if db_post is None:
+        raise HTTPException(status_code=404, detail='post não encontrado')
+    db_post.title = post_update.title
+    db_post.content = post_update.content
+    db.commit()
+    return db_post
+
 # Endpoit para criar usuário
 @app.post("/users/", tags = ["user"], status_code=status.HTTP_201_CREATED)
 async def create_user(user: UserBase, db: db_dependency):
@@ -92,6 +116,20 @@ async def delete_user(user_id: int, db:db_dependency):
         raise HTTPException(status_code=404, detail='Usuário não encontrado')
     db.delete(db_user)
     db.commit()
+
+
+# Endpoint para atualizar usuários 
+@app.put("/users/{user_id}", tags = ["user"], status_code=status.HTTP_200_OK)
+async def up_user(user_id:int, user_update: UpdateUser, db:db_dependency):
+    db_user = db.query(models.User).filter(models.User.id == user_id).first()
+    if db_user is None:
+        raise HTTPException(status_code=404, detail='Usuário não encontrado')
+    db_user.username = user_update.username
+    db.commit()
+    return db_user
+
+
+
 
 
 
